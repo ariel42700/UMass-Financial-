@@ -9,12 +9,11 @@ author: "Alain Duplan & Ariel Lutati"
 library(readxl)
 library(TTR)
 library(forecast)
-
-CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 1)
-CashFlows <- as.data.frame(t(CashFlows))
-CashFlows <- na.omit(CashFlows)
-RevenuesExpenses <- read_excel("UMass Balance sheets.xlsx", sheet = 2)
-NetPosition <- read_excel("UMass Balance sheets.xlsx", sheet = 3)
+library(tree)
+library(randomForest)
+CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 2)
+RevenuesExpenses <- read_excel("UMass Balance sheets.xlsx", sheet = 3)
+NetPosition <- read_excel("UMass Balance sheets.xlsx", sheet = 4)
 inflation <- c(1, 1.01, 1.03, 1.06, 1.08)
 ```
 ```{r}
@@ -30,8 +29,8 @@ ts.plot(netPosTotal.ts)
 
 ```
 ```{r}
-CF.tree <- tree(V2~., CashFlows)
-tree.plot <- plot(CF.tree, type = "b")
+CF.tree <- tree(CashFlows$Tuitionfees ~., data = CashFlows)
+CF.tree
 ```
 
 ```{r}
