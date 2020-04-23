@@ -15,11 +15,15 @@ RevenuesExpenses <- read_excel("UMass Balance sheets.xlsx", sheet = 2)
 NetPosition <- read_excel("UMass Balance sheets.xlsx", sheet = 3)
 inflation <- c(1, 1.01, 1.03, 1.06, 1.08)
 ```
+
+
 ```{r}
 netPosNets <- subset(NetPosition, NETS == "1")
 netPosTotal<- netPosNets[1,2:6]
 netPosTotal <- netPosTotal / inflation
 ```
+
+
 ```{r}
 netPosTotal.vec <- as.numeric(as.vector(netPosTotal))
 netPosTotal.vec <- rev(netPosTotal.vec)
