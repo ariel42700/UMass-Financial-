@@ -17,7 +17,7 @@ library(janitor)
 CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 1)
 #CashFlows <- as.data.frame(t(CashFlows))
 original <- CashFlows
-tuition <- CashFlows[2,]
+tuition <- CashFlows[c(2,18),]
 names(CashFlows)
 CashFlows <- subset(CashFlows, Nets == "1")
 CashFlows <- rbind(CashFlows, tuition)
@@ -35,5 +35,48 @@ set.seed(seed.val)
 ```
 
 ```{r}
+x <- original[c(2,16:20),]
+x.train <- x[,2:4]
+x.train <- as.data.frame(t(x.train))
+fit.x <- lm(V1~.,data=x.train)
+summary(fit.x)
+```
+
+```{r}
+fit.1 <- lm(V12 ~V1, data = train)
+summary(fit.1)
+
+fit.2 <- lm(V12 ~V2, data = train)
+summary(fit.2)
+
+fit.3 <- lm(V12 ~V3, data = train)
+summary(fit.3)
+
+fit.4 <- lm(V12 ~V4, data = train)
+summary(fit.4)
+
+fit.5 <- lm(V12 ~V5, data = train)
+summary(fit.5)
+
+fit.6 <- lm(V12 ~V6, data = train)
+summary(fit.6)
+
+fit.7 <- lm(V12 ~V7, data = train)
+summary(fit.7)
+
+fit.8 <- lm(V12 ~V8, data = train)
+summary(fit.8)
+
+fit.9 <- lm(V12 ~V9, data = train)
+summary(fit.9)
+
+fit.10 <- lm(V12 ~V10, data = train)
+summary(fit.10)
+
+fit.11 <- lm(V12 ~V11, data = train)
+summary(fit.11)
+
+fit.13 <- lm(V12 ~V13, data = train)
+summary(fit.13)
 ```
 
