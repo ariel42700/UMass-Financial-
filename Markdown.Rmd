@@ -56,11 +56,11 @@ ts.plot(netPosTotal.ts)
 
 ```
 ```{r}
-rf.fit <- randomForest(`Tuitionfees`~., method = "anova", data = CashFlows.2, mtry = 6, importance = TRUE)
+rf.fit <- randomForest(`12`~., method = "anova", data = CashFlows.2, mtry = 6, importance = TRUE)
 varImpPlot(rf.fit)
 ```
 ```{r}
-fit.1 <- lm(`Tuitionfees` ~ Cash.flows.from.operating.activities, data = CashFlows.1)
+fit.1 <- lm(`Tuition and fees` ~ Cash.flows.from.operating.activities, data = CashFlows.1)
 summary(fit.1)
 #step(fit.1)
 ```
