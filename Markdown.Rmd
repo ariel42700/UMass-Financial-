@@ -21,62 +21,19 @@ tuition <- CashFlows[2,]
 names(CashFlows)
 CashFlows <- subset(CashFlows, Nets == "1")
 CashFlows <- rbind(CashFlows, tuition)
-
-inflation <- c(1, 1.01, 1.03, 1.06, 1.08)
-seed.val <- 1234567
-set.seed(seed.val)
-
 ```
+
 ```{r}
-train <- CashFlows[,1:4]
-test <- CashFlows[,c(1, 5:6)]
+train <- CashFlows[,2:4]
+test <- CashFlows[,c(5:6)]
 train <- as.data.frame(t(train))
 test <- as.data.frame(t(test))
 ```
 ```{r}
-
-
-inflation <- c(1, 1.01, 1.03, 1.06, 1.08)
 seed.val <- 1234567
 set.seed(seed.val)
 ```
 
-
 ```{r}
-netPosNets <- subset(NetPosition, NETS == "1")
-netPosTotal<- netPosNets[1,2:6]
-netPosTotal <- netPosTotal / inflation
 ```
 
-
-```{r}
-netPosTotal.vec <- as.numeric(as.vector(netPosTotal))
-netPosTotal.vec <- rev(netPosTotal.vec)
-netPosTotal.ts <-ts(netPosTotal.vec, frequency = 1, start = c(2015,1))
-ts.plot(netPosTotal.ts)
-
-```
-```{r}
-rf.fit <- randomForest(`12`~., method = "anova", data = CashFlows.2, mtry = 6, importance = TRUE)
-varImpPlot(rf.fit)
-```
-```{r}
-fit.1 <- lm(`Tuition and fees` ~ Cash.flows.from.operating.activities, data = CashFlows.1)
-summary(fit.1)
-#step(fit.1)
-```
-
-```{r}
-NetPosition.pred <- HoltWinters(netPosTotal.ts, beta = FALSE, gamma = FALSE)
-plot(NetPosition.pred)
-```
-
-```{r}
-NetPosition.pred2 <- forecast:::forecast.HoltWinters(NetPosition.pred, h=1)
-forecast:::plot.forecast(NetPosition.pred2)
-```
-
-```{r}
-plot.ts(NetPosition.pred2$residuals)
-hist(NetPosition.pred2$residuals)
-```
