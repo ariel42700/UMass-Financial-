@@ -11,10 +11,33 @@ library(TTR)
 library(forecast)
 library(tree)
 library(randomForest)
-CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 2)
+library(janitor)
+```
+```{r}
+CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 1)
+#CashFlows <- as.data.frame(t(CashFlows))
+tuition <- CashFlows[2,]
+names(CashFlows)
+CashFlows <- subset(CashFlows, Nets == "1")
+CashFlows <- rbind(CashFlows, tuition)
+```
+```{r}
+CashFlows.1 <- CashFlows
+CashFlows.2 <- CashFlows
+#CashFlows.1 <- t(CashFlows.1)
+#CashFlows.1 <- na.omit(CashFlows.1)
+#CashFlows.2 <- t(CashFlows.2)
+#CashFlows.2 <- na.omit(CashFlows.2)
+CashFlows.2 <- as.data.frame(t(CashFlows.2))
+
+```
+```{r}
+
 RevenuesExpenses <- read_excel("UMass Balance sheets.xlsx", sheet = 3)
 NetPosition <- read_excel("UMass Balance sheets.xlsx", sheet = 4)
 inflation <- c(1, 1.01, 1.03, 1.06, 1.08)
+seed.val <- 1234567
+set.seed(seed.val)
 ```
 
 
@@ -33,8 +56,13 @@ ts.plot(netPosTotal.ts)
 
 ```
 ```{r}
-CF.tree <- tree(CashFlows$Tuitionfees ~., data = CashFlows)
-CF.tree
+rf.fit <- randomForest(`Tuitionfees`~., method = "anova", data = CashFlows.2, mtry = 6, importance = TRUE)
+varImpPlot(rf.fit)
+```
+```{r}
+fit.1 <- lm(`Tuitionfees` ~ Cash.flows.from.operating.activities, data = CashFlows.1)
+summary(fit.1)
+#step(fit.1)
 ```
 
 ```{r}
