@@ -35,6 +35,7 @@ set.seed(seed.val)
 ```
 
 ```{r}
+<<<<<<< HEAD
 x <- original[c(2,16:20),]
 x.train <- x[,2:4]
 x.train <- as.data.frame(t(x.train))
@@ -78,5 +79,26 @@ summary(fit.11)
 
 fit.13 <- lm(V12 ~V13, data = train)
 summary(fit.13)
+=======
+train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
+#varImpPlot(train.forest)
+train.pred <- predict(train.forest, train)
+train.forest.pred.ts <- ts((as.numeric(as.vector(train.pred))), frequency = 1, start = c(2015, 1))
+train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
+
+ts.plot(train.forest.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+>>>>>>> 0c3aca7fbea15844a3175062493a28c43673a503
 ```
 
+```{r}
+#par(mfrow= c(1,2))
+train.rmse <- rmse(train$V12, train.pred)
+#23,161,920.7
+train.res = train.pred - train$V12
+
+train.res.ts <- ts((as.numeric(as.vector(train.res))), frequency = 1, start = c(2015, 1))
+ts.plot(train.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
+
+hist(train.res)
+```
