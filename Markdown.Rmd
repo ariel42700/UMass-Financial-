@@ -4,14 +4,19 @@ output: html_document
 author: "Alain Duplan & Ariel Lutati"
 ---
 
+## set up
 
-```{r}
+```{r, echo=FALSE, message=F, warning=F}
+library(knitr)
+opts_chunk$set(echo = FALSE)
+library(tidyverse)
 library(readxl)
-library(TTR)
-library(forecast)
-library(tree)
 library(randomForest)
-library(janitor)
+library(rlist)
+library(Metrics)
+library(TTR)
+library(gridExtra)
+library(xtable)
 ```
 ```{r}
 CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 1)
@@ -34,14 +39,7 @@ seed.val <- 1234567
 set.seed(seed.val)
 ```
 
-```{r}
-<<<<<<< HEAD
-x <- original[c(2,16:20),]
-x.train <- x[,2:4]
-x.train <- as.data.frame(t(x.train))
-fit.x <- lm(V1~.,data=x.train)
-summary(fit.x)
-```
+## linear model
 
 ```{r}
 fit.1 <- lm(V12 ~V1, data = train)
@@ -79,7 +77,131 @@ summary(fit.11)
 
 fit.13 <- lm(V12 ~V13, data = train)
 summary(fit.13)
-=======
+```
+note that all together, a proper linear could not be created using all the variables 
+
+V3, V5, significant under 5% interval and V11 is significant under 1% interval. So we will use these three models of linear regresssion to try to predict tuittion and fees
+
+V11 - sumplimental disclosures of non cash activities
+V5 - net decrease in cash and noncash equivalents
+V3 - cash flows from capital and other financing activities
+
+We also found that cash from non financing activities is important to umass since that is what they are using for refunds this semester
+```{r}
+
+x <- original[c(2,3,16:20),]
+x.train <- x[,2:4]
+x.train <- as.data.frame(t(x.train))
+
+x.2 <- lm(V1~V2,data=x.train)
+summary(x.2)
+
+x.3 <- lm(V1~V3,data=x.train)
+summary(x.3)
+
+x.4 <- lm(V1~V4,data=x.train)
+summary(x.4)
+
+x.5 <- lm(V1~V5,data=x.train)
+summary(x.5)
+
+x.6 <- lm(V1~V6,data=x.train)
+summary(x.6)
+
+x.7 <- lm(V1~V7,data=x.train)
+summary(x.7)
+
+```
+ V7  and V2 are the only significant variables in this catergory so we will also use it
+ V2 - grants and contracts
+ v7 - student orginzation agency transactions
+ 
+ 
+ plot tuitiin and fees on its , if you want we can plot the other variables but that would be a lot of graphs
+```{r}
+tuition <- as.data.frame(t(CashFlows))
+ tuition.ts <- ts((as.numeric(as.vector(tuition[2:6,12]))), frequency = 1, start = c(2015, 1))
+ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "tuition over the years")
+```
+make our predictions
+```{r}
+pred.v11 <- predict(fit.11, train)
+pred.v5 <- predict(fit.5, train)
+predict.v3 <- predict(fit.3, train)
+predict.x2 <- predict(x.2, train)
+predict.x7 <- predict(x.7, train)
+
+train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
+
+v11.ts <- ts(as.numeric(pred.v11), frequency = 1, start = c(2015, 1))
+v5.ts <- ts(as.numeric(pred.v5), frequency = 1, start = c(2015, 1))
+v3.ts <- ts(as.numeric(predict.v3), frequency = 1, start = c(2015, 1))
+x2.ts <- ts(as.numeric(predict.x2), frequency = 1, start = c(2015, 1))
+x7.ts <- ts(as.numeric(predict.x7), frequency = 1, start = c(2015, 1))
+
+ts.plot(v11.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+ts.plot(v5.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+ts.plot(v3.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+ts.plot(x2.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+ts.plot(x7.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+
+``` 
+we have to add some labels lol but we can work on it after
+
+v11 is by far the closest predictors, follows by v5, v3 is meh and everything else goes to shit from there
+
+we will now plot the residual time series see how much we are off by
+
+```{r}
+rmse(pred.v5, train$V12) #12532.33
+rmse(predict.v3, train$V12) #6991.26
+rmse(pred.v11, train$V12) #2333.271
+rmse(predict.x2, train$V12) #142085.6
+rmse(predict.x7, train$V12) #42638079
+
+```
+
+```{r}
+res.v6 = pred.v5 - train$V12
+res.v11 = pred.v11 - train$V12
+res.v3 = predict.v3 - train$V12
+res.x2 = predict.x2 - train$V12
+res.x7 = predict.x7 - train$V12
+
+sum(res.v6) #-3.49246e-10
+sum(res.v11)# 0
+sum(res.v3)# 3.49246e-10
+sum(res.x2)# -356311 # the last two are really bad
+sum(res.x7) #124829573
+```
+```{r}
+v6.res.ts <- ts((as.numeric(as.vector(res.v6))), frequency = 1, start = c(2015, 1))
+ts.plot(v6.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
+
+v11.res.ts <- ts((as.numeric(as.vector(res.v11))), frequency = 1, start = c(2015, 1))
+ts.plot(v11.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
+
+v3.res.ts <- ts((as.numeric(as.vector(res.v3))), frequency = 1, start = c(2015, 1))
+ts.plot(v3.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
+
+x2.res.ts <- ts((as.numeric(as.vector(res.x2))), frequency = 1, start = c(2015, 1))
+ts.plot(x2.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
+
+x7.res.ts <- ts((as.numeric(as.vector(res.x7))), frequency = 1, start = c(2015, 1))
+ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
+ 
+```
+ all centers at 0 but last 2, the second seems to have the smallest range which means its the best, so lets use the first three as our test
+ 
+##random forest
+
+random forest on all of cash flows nets, var imp plot doesnt want to work so we will address that  in the plot
+```{r}
 train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
 #varImpPlot(train.forest)
 train.pred <- predict(train.forest, train)
@@ -88,7 +210,6 @@ train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015
 
 ts.plot(train.forest.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
->>>>>>> 0c3aca7fbea15844a3175062493a28c43673a503
 ```
 
 ```{r}
@@ -96,9 +217,33 @@ legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 
 train.rmse <- rmse(train$V12, train.pred)
 #23,161,920.7
 train.res = train.pred - train$V12
-
+sum(train.res) # 14313.16
 train.res.ts <- ts((as.numeric(as.vector(train.res))), frequency = 1, start = c(2015, 1))
 ts.plot(train.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
 
-hist(train.res)
+#hist(train.res)
+```
+
+alot of varaiance so lets test on x
+
+```{r}
+x.forest <- randomForest(V1 ~.,data = x.train, mtry  = 5, importance = T)
+#varImpPlot(train.forest)
+x.pred <- predict(x.forest, x.train)
+x.pred.ts <- ts((as.numeric(as.vector(x.pred))), frequency = 1, start = c(2015, 1))
+#train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
+
+ts.plot(x.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+```{r}
+#par(mfrow= c(1,2))
+x.rmse <- rmse(train$V12, x.pred)
+#24,093.50
+x.res = x.pred - train$V12
+sum(x.res) # 8214.76 
+x.res.ts <- ts((as.numeric(as.vector(x.res))), frequency = 1, start = c(2015, 1))
+ts.plot(x.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
+
+#hist(train.res)
 ```
