@@ -1,7 +1,9 @@
 ---
 title: "CheapMass"
-output: html_document
 author: "Alain Duplan & Ariel Lutati"
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ## set up
@@ -33,6 +35,10 @@ train <- CashFlows[,2:4]
 test <- CashFlows[,c(5:6)]
 train <- as.data.frame(t(train))
 test <- as.data.frame(t(test))
+
+train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2018, 1))
+test.ts <- ts((as.numeric(as.vector(test$V12))), frequency = 1, start = c(2018, 1))
+
 ```
 ```{r}
 seed.val <- 1234567
@@ -41,7 +47,7 @@ set.seed(seed.val)
 
 ## linear model
 
-```{r}
+```{r, results="hide"}
 fit.1 <- lm(V12 ~V1, data = train)
 summary(fit.1)
 
@@ -87,7 +93,7 @@ V5 - net decrease in cash and noncash equivalents
 V3 - cash flows from capital and other financing activities
 
 We also found that cash from non financing activities is important to umass since that is what they are using for refunds this semester
-```{r}
+```{r, results="hide"}
 
 x <- original[c(2,3,16:20),]
 x.train <- x[,2:4]
@@ -112,29 +118,7 @@ x.7 <- lm(V1~V7,data=x.train)
 summary(x.7)
 
 ```
-```{r}
-x.test <- x[,5:4]
-x.test <- as.data.frame(t(x.test))
 
-xt.2 <- lm(V1~V2,data=x.test)
-summary(x.2)
-
-xt.3 <- lm(V1~V3,data=x.test)
-summary(x.3)
-
-xt.4 <- lm(V1~V4,data=x.test)
-summary(x.4)
-
-xt.5 <- lm(V1~V5,data=x.test)
-summary(x.5)
-
-xt.6 <- lm(V1~V6,data=x.test)
-summary(x.6)
-
-xt.7 <- lm(V1~V7,data=x.test)
-summary(x.7)
-
-```
  V7  and V2 are the only significant variables in this catergory so we will also use it
  V2 - grants and contracts
  v7 - student orginzation agency transactions
@@ -144,10 +128,12 @@ summary(x.7)
 ```{r}
 tuition <- as.data.frame(t(CashFlows))
  tuition.ts <- ts((as.numeric(as.vector(tuition[2:6,12]))), frequency = 1, start = c(2015, 1))
-ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "tuition over the years")
+ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tuition Over the Years")
 ```
 make our predictions
 ```{r}
+
+par(mfrow=c(3, 2))
 pred.v11 <- predict(fit.11, train)
 pred.v5 <- predict(fit.5, train)
 predict.v3 <- predict(fit.3, train)
@@ -162,15 +148,15 @@ v3.ts <- ts(as.numeric(predict.v3), frequency = 1, start = c(2015, 1))
 x2.ts <- ts(as.numeric(predict.x2), frequency = 1, start = c(2015, 1))
 x7.ts <- ts(as.numeric(predict.x7), frequency = 1, start = c(2015, 1))
 
-ts.plot(v11.ts, train.ts, gpars = list(col=rainbow(2))) 
+ts.plot(v11.ts, train.ts,  main = "v11", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(v5.ts, train.ts, gpars = list(col=rainbow(2))) 
+ts.plot(v5.ts, train.ts,  main = "v5", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(v3.ts, train.ts, gpars = list(col=rainbow(2))) 
+ts.plot(v3.ts, train.ts, main = "v3", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(x2.ts, train.ts, gpars = list(col=rainbow(2))) 
+ts.plot(x2.ts, train.ts,  main = "x2", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(x7.ts, train.ts, gpars = list(col=rainbow(2))) 
+ts.plot(x7.ts, train.ts,  main = "x7", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 
 ``` 
@@ -180,7 +166,7 @@ v11 is by far the closest predictors, follows by v5, v3 is meh and everything el
 
 we will now plot the residual time series see how much we are off by
 
-```{r}
+```{r, results="hide"}
 rmse(pred.v5, train$V12) #12532.33
 rmse(predict.v3, train$V12) #6991.26
 rmse(pred.v11, train$V12) #2333.271
@@ -189,7 +175,7 @@ rmse(predict.x7, train$V12) #42638079
 
 ```
 
-```{r}
+```{r, results="hide"}
 res.v6 = pred.v5 - train$V12
 res.v11 = pred.v11 - train$V12
 res.v3 = predict.v3 - train$V12
@@ -203,6 +189,7 @@ sum(res.x2)# -356311 # the last two are really bad
 sum(res.x7) #124829573
 ```
 ```{r}
+par(mfro=c(3,2))
 v6.res.ts <- ts((as.numeric(as.vector(res.v6))), frequency = 1, start = c(2015, 1))
 ts.plot(v6.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
 
@@ -220,50 +207,15 @@ ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
  
 ```
 
-```{r}
-pred.v11 <- predict(fit.11, train)
-pred.v5 <- predict(fit.5, train)
-predict.v3 <- predict(fit.3, train)
-predict.x2 <- predict(x.2, train)
-predict.x7 <- predict(x.7, train)
-
-train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
-
-v11.ts <- ts(as.numeric(pred.v11), frequency = 1, start = c(2015, 1))
-v5.ts <- ts(as.numeric(pred.v5), frequency = 1, start = c(2015, 1))
-v3.ts <- ts(as.numeric(predict.v3), frequency = 1, start = c(2015, 1))
-x2.ts <- ts(as.numeric(predict.x2), frequency = 1, start = c(2015, 1))
-x7.ts <- ts(as.numeric(predict.x7), frequency = 1, start = c(2015, 1))
-
-ts.plot(v11.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(v5.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(v3.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(x2.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(x7.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-
-``` 
 we have to add some labels lol but we can work on it after
 
 v11 is by far the closest predictors, follows by v5, v3 is meh and everything else goes to shit from there
 
 we will now plot the residual time series see how much we are off by
 
-```{r}
-rmse(pred.v5, train$V12) #12532.33
-rmse(predict.v3, train$V12) #6991.26
-rmse(pred.v11, train$V12) #2333.271
-rmse(predict.x2, train$V12) #142085.6
-rmse(predict.x7, train$V12) #42638079
-
-```
-
 
 ```{r}
+par(mfrow=c(3,2))
 v6.res.ts <- ts((as.numeric(as.vector(res.v6))), frequency = 1, start = c(2015, 1))
 ts.plot(v6.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
 
@@ -282,7 +234,7 @@ ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "Linear Model")
 ```
  all centers at 0 but last 2, the second seems to have the smallest range which means its the best, so lets use the first three as our test
  
-##random forest
+## random forest
 
 random forest on all of cash flows nets, var imp plot doesnt want to work so we will address that  in the plot
 ```{r}
@@ -290,13 +242,12 @@ train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
 #varImpPlot(train.forest)
 train.pred <- predict(train.forest, train)
 train.forest.pred.ts <- ts((as.numeric(as.vector(train.pred))), frequency = 1, start = c(2015, 1))
-train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
 
 ts.plot(train.forest.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
 
-```{r}
+```{r, results="hide"}
 #par(mfrow= c(1,2))
 train.rmse <- rmse(train$V12, train.pred)
 #23,161,920.7
@@ -333,43 +284,85 @@ ts.plot(x.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
 ```
 
 Running our random tree forest on our test: Having soe trouble working out the graphs for this
-```{r}
-res.v6t = pred.v5 - test$V12
-res.v11t = pred.v11 - test$V12
-res.v3t = predict.v3 - test$V12
-res.x2t = predict.x2 - test$V12
-res.x7t = predict.x7 - test$V12
 
-sum(res.v6t) #-3.49246e-10
-sum(res.v11t)# 0
-sum(res.v3t)# 3.49246e-10
-sum(res.x2t)# -356311 # the last two are really bad
-sum(res.x7t) #124829573
+## testing / results
+
+lets use the best fitted models on our training set
+
+we will use fit 11, fit 3, fit 5, and both forests
+
+```{r}
+test.pred11 <- predict(fit.11, test)
+test.pred3 <- predict(fit.3, test)
+test.pred5 <- predict(fit.5, test)
+
+test.pred11.ts <- ts(test.pred11, frequency = 1, start = c(2018, 1))
+test.pred3.ts <- ts(test.pred3, frequency = 1, start = c(2018, 1))
+test.pred5.ts <- ts(test.pred5, frequency = 1, start = c(2018, 1))
+
+ts.plot(test.pred11.ts, test.pred3.ts, test.pred5.ts, test.ts, gpars = list(col=rainbow(4))) 
+legend("topright", legend = c("Fit 11", "Fit 3", "Fit 5", "true"), col = rainbow((4)), lty = 1)
+```
+
+```{r, results="hide"}
+rmse(test.pred11, test$V12) #127113.1
+rmse(test.pred3, test$V12) #102434.2
+rmse(test.pred5, test$V12) #245568.4
+
+res.t11 <- test.pred11 - test$V12
+res.t3 <- test.pred3 - test$V12
+res.t5 <- test.pred5 - test$V12
+
+sum(res.t11) #33331.97
+sum(res.t3) #145521.5
+sum(res.t5) #353963.5
+
 ```
 ```{r}
-predt.v11 <- predict(fit.11, test)
-predt.v5 <- predict(fit.5, test)
-predictt.v3 <- predict(fit.3, test)
-predictt.x2 <- predict(x.2, test)
-predictt.x7 <- predict(x.7, test)
+res.t11.ts <- ts(res.t11, frequency = 1, start = c(2018, 1))
+res.t3.ts <- ts(res.t3, frequency = 1, start = c(2018, 1))
+res.t5.ts <- ts(res.t5, frequency = 1, start = c(2018, 1))
 
-test.ts <- ts((as.numeric(as.vector(test$V12))), frequency = 1, start = c(2015, 1))
+ts.plot(res.t11.ts, res.t3.ts, res.t5.ts, gpars = list(col=rainbow(3))) 
+legend("topright", legend = c("Fit 11", "Fit 3", "Fit 5"), col = rainbow((3)), lty = 1)
+```
 
-v11t.ts <- ts(as.numeric(pred.v11), frequency = 1, start = c(2015, 1))
-v5t.ts <- ts(as.numeric(pred.v5), frequency = 1, start = c(2015, 1))
-v3t.ts <- ts(as.numeric(predict.v3), frequency = 1, start = c(2015, 1))
-x2t.ts <- ts(as.numeric(predict.x2), frequency = 1, start = c(2015, 1))
-x7t.ts <- ts(as.numeric(predict.x7), frequency = 1, start = c(2015, 1))
+check forest
 
-ts.plot(v11.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(v5.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(v3.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(x2.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-ts.plot(x7.ts, train.ts, gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```{r}
+rf.pred <- predict(train.forest, test)
+rfx.pred <- predict(x.forest, test)
+
+rf.ts <- ts(rf.pred, frequency = 1, start = c(2018, 1))
+rfx.ts <- ts(rfx.pred, frequency = 1, start = c(2018, 1))
+ts.plot(rf.ts, rfx.ts, test.ts, gpars = list(col=rainbow(3))) 
+legend("topright", legend = c("main forest", "x forest", "true"), col = rainbow((3)), lty = 1)
+```
+
+a lot of error
+
+```{r, results="hide"}
+rmse(rf.pred, test$V12) #92379.58
+rmse(rfx.pred, test$V12) #130204.1
+
+
+res.rf <- rf.pred - test$V12
+res.rfx <- rfx.pred - test$V12
+
+
+sum(res.rf) # 184747
+sum(res.rfx) #259976.7
 
 ```
+```{r}
+res.rf.ts <- ts(res.rf, frequency = 1, start = c(2018, 1))
+res.rfx.ts <- ts(res.rfx, frequency = 1, start = c(2018, 1))
+
+
+ts.plot(res.rf.ts, res.rfx.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("rf", "rfx"), col = rainbow((2)), lty = 1)
+```
+
+## conclusin
+
+none of the models we got could really good predictors so we can conclude that there is no correlation with cashflow from other sources and cash flows from tutition and fees. make note that our data was weak given we only had 5 years to work with.
