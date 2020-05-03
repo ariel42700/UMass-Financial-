@@ -5,17 +5,16 @@ author:
   name: Alain Duplan, Ariel Lutati
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
+  html_document:
+    df_print: paged
   pdf_document:
     latex_engine: pdflatex
     template: tex_template.tex
   word_document: default
-  html_document:
-    df_print: paged
 fontsize: 10pt
 geometry: margin=.75in
 fontfamily: mathpazo
 abstract: \par The University of Massachusetts is a public institution providing collegiate education to tens of thousands of students spread out between its campuses statewide. Billions of dollars of revenue is accumulated by the institution each and every year. The use of numerous sources of income has resulted in a net gain of profit yearly. One of the most prominent sources is the net total of tuition and fees. Given as the main functionality of the UMass schools is provided higher education to pursuing students, the revenue made off tuition could be stated as the most important source, even if it may not be the biggest. However, one may question if other cash flows would affect this source. A good practice in business is to keep all income independent of one another to avoid a chain reaction of effects. However shifts in other sources of income could lead to the institution making decisions that affect the student body leading to an adjustment in revenue as more students may want to attend or leave or causing a revaluation of tuition costs. **We hypothesize that the revenue coming from tuition and fees for the University of Massachusetts is dependent on the revenue of its other cash flows.** Through the use of random foresting and linear regression we aimed to reject our hypothesis. Upon testing we weren’t able to formulate a model that was able to accurately predict revenue of tuition in fees, therefore correlation between the cash flows could not be drawn.
-
 ---
 
 ```{r, echo=FALSE, message=F, warning=F}
@@ -29,14 +28,14 @@ library(Metrics)
 library(TTR)
 library(gridExtra)
 library(xtable)
+library(tinytex)
 ```
 
 
 ## **Introduction**
 
-Amherst is the flagship campus of the University of Massachusetts. Being so it is one of the most populated colleges in the state. With more and more students wanting to pursue degrees, UMass, like most schools, is admitting more and more students each year. Initially this doesn't seem to be an issue as an extended student body would lead to greater student engagement and more income directly to the school to fund projects such as renovations. However, when the once cozy z-rooms are now becoming “economy triples,”  and the common rooms on every floor are now turning into quads and triples, we begin to question whether not the school is prepared to hold so many students.
-\par When asked, a majority of people would say that UMass makes most of its income from tuition fees as it is a common misconception that the univerisity has direct control on the price of tuition. However, this is not necessarily true as tuition is set by the Department of Education and as UMass is a public institution, most students are sensitive with how much they pay for their tuition and fees. With national college debt on the rise, the growing cost of education worries the next generation on how they will afford it. Many pointed towards UMass’s habit of over enrolling students to be the cause of the increasing cost of tuition.
-\par Taking into consideration that many students are now struggling to find rooms for next semester, and that overall student debt is at all time high, it is hard not to question whether there is a correlation between enrollment and tuition and fees. While controlling as many variables as possible we aim to find if enrollment is a determinant of the cost of attending UMass. 
+The UMass system allows for a quality education for an economical price (for instate students). UMass's tuition and fees pricing is primarily decided by the Department of Education. Nonetheless, we wanted to explore for any internal factors within UMass' cashflows that could influence their revenue produced by tuition and fees. We believe that that if UMass acquires higher revenue in cashflows such as grants and contracts, operating, and non-operating activities, then quality of life on campus would increase consequently leading to higher revenue in tuition and fees. Likewise, if losses in cashflows increases, campus quality of life will decrease and thus, revenue made via tuition and fees will decrease.
+\par Taking into consideration that overall student debt is at an all time high, it is hard not to question whether there is a correlation between other cashflows and tuition and fees. Given that students pay entirely towards tuition and fees. It would be within the students' best interests to understand what factors affect the students' largest contributer to academic finances and loan debt. 
 
 ## **Data**
 
@@ -88,153 +87,20 @@ ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tu
 ```
 
 ## **Modeling**
-\par To begin we will reserve the last 6 years of the dataframe as our testing set, and everything else as our training set.
-```{r}
-train <- UMASS[1:30,]
-test <- UMASS[31:36,] #we simply will use the last 6 years to test our data
-test.ts <- ts((as.numeric(as.vector(test$COSTRATE))), frequency = 1, start = c(2014, 1))
-train.ts <- ts((as.numeric(as.vector(train$COSTRATE))), frequency = 1, start = c(1984, 1))
-```
-\par The first model we will use is a linear regression model. We will try to predict the rate of which cost changes by using admission rate, acceptance rate, enrollment rate of change, and our dummy turmoil variable as our determinants. After the first run we found that together none of the variables are significant. To fix this we run a step function which iteratively removes the least statistically significant variable until the remaining are significant. The conclusion of this function tells us that turmoil and enrollment rate are most significant. After running a linear regression on those two variables we find that they both are significant with p-values under .01. This would give us the equation:
-\newline
-\newline
-$COSTRATE = .052595  -(.062254)TURMOIL -(.838094)ENROLLMENTRATE$
-\newline
-\newline
-This would mean that on average, the turmoil of 1995 decreased the rate of change of cost by 6% and doubling enrollment(rate of change of 1 would mean that enrollment has doubled in size), would cause the rate of which cost increases to decrease by a huge 83%!
-\newline
-```{r, results="hide"}
-train.cost <- na.omit(train[,c(12,13,15,16,17)]) # selecting only variables we need, we only will use rates to reduce the effect of time 
-cost.lm <- lm(COSTRATE ~., data = train.cost)
-step(cost.lm)
-```
-
-```{r}
-cost.step <- lm(formula = COSTRATE ~ ENROLLMENTRATE + TURMOIL, data = train.cost)
-kable(xtable(cost.step))
-```
-
-\par Once we are able to run this model on our training set, we see that it is a fairly decent predictor of the time series and does a great job of smoothing the data. However it seems to underestimate the economic turning points mentioned prior.
-\newline
-```{r}
-step.train <- predict(cost.step, train)
-step.train.ts <- ts(step.train, frequency = 1, start = c(1984, 1))
-
-ts.plot(step.train.ts, train.ts, xlab="Year", ylab="Rate of Change", main="Rate of Change Over Time" , gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-```
-\par After we run the model, we plot the residual. We find that the residual plots show a slightly skewed distribution to the left with no trends, while being able to remain with a 10% range. We also find that the root mean square error is only 3.86% and the sum of the residuals is 14%, so it slightly over predicts. So we can conclude this a fairly accurate predictor that overestimates.
-\newline 
-```{r}
-par(mfrow= c(1,2))
-step.rmse <- rmse(train$COSTRATE, step.train)
-
-
-step.res = step.train - train$COSTRATE
-step.sum <- sum(step.res)
-
-step.res.ts <- ts((as.numeric(as.vector(step.res))), frequency = 1, start = c(1984, 1))
-ts.plot(step.res.ts, xlab = "Year", ylab = "Cost in $", main = "Adjusted cost rate of change")
-
-hist(step.res, xlab = "Year", ylab = "Cost in $", main = "Adjusted cost rate of change")
-```
-\par After we run a random foresting model to try to get a better model. Setting the seed to 1234, we see that enrollment rate and turmoil comes up the strongest predictors by means squared error and node purity, again amongst all that we are testing.
-\newline
-```{r}
-set.seed(1234)
-cost.forest <- randomForest(COSTRATE ~.,data = train.cost, mtry  = 4, importance = T)
-varImpPlot(cost.forest, main = "Random Foresting Predictors")
-
-```
-\par Running the random forest model on the training set we see it is a much smoother time series then the linear model and does a better job at predicting the peaks, though it is not perfect at doing it.
-\newline
-```{r}
-tree.pred <- predict(cost.forest, train)
-tree.true.ts <- ts(tree.pred, frequency = 1, start = c(1984, 1))
-
-ts.plot(tree.true.ts, train.ts, xlab="Year", ylab="Rate of Change", main="Rate of Change Over Time", gpars = list(col=rainbow(2))) 
-legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
-```
-\par After checking the residuals, we find a root mean squared error to be 2.22% and the sum of residuals to be 2.5% which is much lower than the prior model. The residuals stayed within about a 5% range though they still seemed to be slightly skewed. Overall they still seemed to be slightly skewed.
-```{r}
-par(mfrow=c(1,2))
-tree.rmse <- rmse(train$COSTRATE[4:30], tree.pred[4:30])
-
-
-tree.res <- tree.pred[4:30] - train$COSTRATE[4:30]
-tree.sum <- sum(tree.res)
-
-
-tree.res.ts <- ts((as.numeric(as.vector(tree.res))), frequency = 1, start = c(1987, 1))
-ts.plot(tree.res.ts, xlab = "Year", ylab = "Cost in $", main = "Adjusted cost rate of change")
-
-hist(tree.res, xlab = "Year", ylab = "Cost in $", main = "Adjusted cost rate of change")
-```
-\par Together, it is believed that both models are accurate enough that we can use on our testing set.
 
 ## **Results**
-\par Now that we have our models, we will run them both on our test data set. Both models stayed relatively close to the true prediction but predicted a much higher than expected rate for 2017. This could be due to the fact the rate of enrollment for that year doesn't seem to follow the trend other years did as it is much lower compared to its neighbors, causing a high error.
-\newline
-```{r}
-par(mfrow=c(1,2))
-step.pred <- predict(cost.step, test)
-step.ts <- ts(step.pred, frequency = 1, start = c(2014, 1))
-
-
-ts.plot(step.ts, test.ts, xlab = "Year", ylab = "Cost in $", main = "Linear Regression", gpars = list(col=rainbow(2))) 
-legend("topleft", legend = c("pred", "true"), col = rainbow((2)), lty = 1)
-
-tree.test.pred <- predict(cost.forest, test)
-tree.ts <- ts(tree.test.pred, frequency = 1, start = c(2014, 1))
-
-ts.plot(tree.ts, test.ts, xlab = "Year", ylab = "Cost in $", main = "Random Foresting", gpars = list(col=rainbow(2))) 
-legend("topleft", legend = c("pred", "true"), col = rainbow((2)), lty = 1)
-```
-\par Upon testing the residuals, both models managed to stay within 8% of the true values, and this value is only high due to the error of 2017. Both of the time series show no trend in errors and the given small test sample makes the histogram obsolete. The linear model has a root mean squared error of 4.17% and a total error of 13.54%. The random forest model has a root mean squared error of 5.86% and a total error of 14.66%. This huge error in both models is due to the year 2017 so if it was removed from the set the totals would only sum up to 6%.
-\newline
-```{r}
-par(mfrow=c(1,2))
-tree.test.rmse <- rmse(train$COSTRATE, tree.test.pred)
-
-tree.test.res = tree.test.pred - test$COSTRATE
-tree.res.sum <- sum(tree.test.res)
-
-
-tree.test.res.ts <- ts((as.numeric(as.vector(tree.test.res))), frequency = 1, start = c(2014, 1))
-ts.plot(tree.test.res.ts, xlab = "Year", ylab = "Cost in $", main = "Random Forest")
-step.test.rmse <- rmse(test$COSTRATE, step.pred)
-
-step.test.res = step.pred - test$COSTRATE
-
-sum.step <- sum(step.test.res)
-
-step.test.res.ts <- ts((as.numeric(as.vector(step.test.res))), frequency = 1, start = c(2014, 1))
-ts.plot(step.test.res.ts, xlab = "Year", ylab = "Cost in $", main= "Linear Model")
-```
-\newline
- \par In this regard, it is safe to say both models were able to accurately predict the rate of change of cost within a roughly 5% interval.
-
-## **Conclusion**
-
-\par We were able to draw a clear correlation between the rate of which enrollment increases and the rate of which costs increases. While controlling for not only inflation, but the effect of time, we were still able to predict the increase of cost to attend UMass within a roughly 5% interval. Though this is not a direct causation between the two, we can conclude that expected enrollment is at least considered when deciding the costs for next semester. The models weren't able to accurately account for business and economic cycles which can affect the price of which tuition is set. We are also only looking at purely the populous of UMass, not other factors such as staffing, programs, and resources provided by the school. With all the new buildings and renovations, there is a direct affect on room and board cost as it increases the value of life off campus. We must also keep in mind that UMass doesn’t directly choose their tuition as that is the decision of the Department of Education. 
-\par Taking all of these into consideration, it remains undeniable that the relationship between the two holds true. There is in fact a correlation present; therefore, we are unable to reject our hypothesis. There is a significant relationship between the amount of students enrolled at the University of Massachusetts, Amherst and the cost of attending while staying on campus.
-\newline
-
-
-
-\newpage
 
 
 ## **References**
 
 
-[“Reports &amp; Audits.” Reports &amp; Audits | University of Massachusetts Office of the President](www.umassp.edu/controller/reports)
+“Reports &amp; Audits.” Reports &amp; Audits | University of Massachusetts Office of the President
 \newline
 \newline
-[Thys, Fred. Study: Out-Of-State Students With Lower Test Scores Admitted To UMass Amherst More. WBUR, 29 May 2018](www.wbur.org/edify/2018/05/29/out-of-state-admissions-to-umass)
+Thys, Fred. Study: Out-Of-State Students With Lower Test Scores Admitted To UMass Amherst More. WBUR, 29 May 2018
 \newline
 \newline
-[“U.S. Bureau of Labor Statistics.” U.S. Bureau of Labor Statistics, U.S. Bureau of Labor Statistics, 28 Apr. 2020](www.bls.gov/)
+“U.S. Bureau of Labor Statistics.” U.S. Bureau of Labor Statistics, U.S. Bureau of Labor Statistics, 28 Apr. 2020
 \newline
 \newline
 
