@@ -5,17 +5,16 @@ author:
   name: Alain Duplan, Ariel Lutati
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
+  html_document:
+    df_print: paged
   pdf_document:
     latex_engine: pdflatex
     template: tex_template.tex
   word_document: default
-  html_document:
-    df_print: paged
 fontsize: 10pt
 geometry: margin=.75in
 fontfamily: mathpazo
 abstract: \par The University of Massachusetts is a public institution providing collegiate education to tens of thousands of students spread out between its campuses statewide. Billions of dollars of revenue is accumulated by the institution each and every year. The use of numerous sources of income has resulted in a net gain of profit yearly. One of the most prominent sources is the net total of tuition and fees. Given as the main functionality of the UMass schools is provided higher education to pursuing students, the revenue made off tuition could be stated as the most important source, even if it may not be the biggest. However, one may question if other cash flows would affect this source. A good practice in business is to keep all income independent of one another to avoid a chain reaction of effects. However shifts in other sources of income could lead to the institution making decisions that affect the student body leading to an adjustment in revenue as more students may want to attend or leave or causing a revaluation of tuition costs. **We hypothesize that the revenue coming from tuition and fees for the University of Massachusetts is dependent on the revenue of its other cash flows.** Through the use of random foresting and linear regression we aimed to reject our hypothesis. Upon testing we weren’t able to formulate a model that was able to accurately predict revenue of tuition in fees, therefore correlation between the cash flows could not be drawn.
-
 ---
 
 ```{r, echo=FALSE, message=F, warning=F}
@@ -29,14 +28,14 @@ library(Metrics)
 library(TTR)
 library(gridExtra)
 library(xtable)
+library(tinytex)
 ```
 
 
 ## **Introduction**
 
-Amherst is the flagship campus of the University of Massachusetts. Being so it is one of the most populated colleges in the state. With more and more students wanting to pursue degrees, UMass, like most schools, is admitting more and more students each year. Initially this doesn't seem to be an issue as an extended student body would lead to greater student engagement and more income directly to the school to fund projects such as renovations. However, when the once cozy z-rooms are now becoming “economy triples,”  and the common rooms on every floor are now turning into quads and triples, we begin to question whether not the school is prepared to hold so many students.
-\par When asked, a majority of people would say that UMass makes most of its income from tuition fees as it is a common misconception that the univerisity has direct control on the price of tuition. However, this is not necessarily true as tuition is set by the Department of Education and as UMass is a public institution, most students are sensitive with how much they pay for their tuition and fees. With national college debt on the rise, the growing cost of education worries the next generation on how they will afford it. Many pointed towards UMass’s habit of over enrolling students to be the cause of the increasing cost of tuition.
-\par Taking into consideration that many students are now struggling to find rooms for next semester, and that overall student debt is at all time high, it is hard not to question whether there is a correlation between enrollment and tuition and fees. While controlling as many variables as possible we aim to find if enrollment is a determinant of the cost of attending UMass. 
+The UMass system allows for a quality education for an economical price (for instate students). UMass's tuition and fees pricing is primarily decided by the Department of Education. Nonetheless, we wanted to explore for any internal factors within UMass' cashflows that could influence their revenue produced by tuition and fees. We believe that that if UMass acquires higher revenue in cashflows such as grants and contracts, operating, and non-operating activities, then quality of life on campus would increase consequently leading to higher revenue in tuition and fees. Likewise, if losses in cashflows increases, campus quality of life will decrease and thus, revenue made via tuition and fees will decrease.
+\par Taking into consideration that overall student debt is at an all time high, it is hard not to question whether there is a correlation between other cashflows and tuition and fees. Given that students pay entirely towards tuition and fees. It would be within the students' best interests to understand what factors affect the students' largest contributer to academic finances and loan debt. 
 
 ## **Data**
 
@@ -88,6 +87,7 @@ ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tu
 ```
 
 ## **Modeling**
+<<<<<<< HEAD
 \par To begin we will reserve the last 2 years of the dataframe as our testing set, and everything else as our training set.
 
 \par We will first approach using  models linear regression models. When attempting to create a model using all the variables made available to us, the model would result is statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, student orginzation agency transactions. 
@@ -125,18 +125,22 @@ kable(xtable(x.7))
 
 
 \newpage
+=======
+
+## **Results**
+>>>>>>> 6b0da0d7457368234dc0023f3f3d2bb2cafab83e
 
 
 ## **References**
 
 
-[“Reports &amp; Audits.” Reports &amp; Audits | University of Massachusetts Office of the President](www.umassp.edu/controller/reports)
+“Reports &amp; Audits.” Reports &amp; Audits | University of Massachusetts Office of the President
 \newline
 \newline
-[Thys, Fred. Study: Out-Of-State Students With Lower Test Scores Admitted To UMass Amherst More. WBUR, 29 May 2018](www.wbur.org/edify/2018/05/29/out-of-state-admissions-to-umass)
+Thys, Fred. Study: Out-Of-State Students With Lower Test Scores Admitted To UMass Amherst More. WBUR, 29 May 2018
 \newline
 \newline
-[“U.S. Bureau of Labor Statistics.” U.S. Bureau of Labor Statistics, U.S. Bureau of Labor Statistics, 28 Apr. 2020](www.bls.gov/)
+“U.S. Bureau of Labor Statistics.” U.S. Bureau of Labor Statistics, U.S. Bureau of Labor Statistics, 28 Apr. 2020
 \newline
 \newline
 
