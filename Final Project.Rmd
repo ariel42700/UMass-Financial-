@@ -1,5 +1,5 @@
 ---
-title: "UMass Amherst Enrollment on Tuition"
+title: " The University of Massachusetts Cashflows on Tuition Revenue"
 author:
 - affiliation: University Of Massachuessetts, Amherst
   name: Alain Duplan, Ariel Lutati
@@ -14,23 +14,8 @@ output:
 fontsize: 10pt
 geometry: margin=.75in
 fontfamily: mathpazo
-abstract: \par There has been a recent trend of the University of Massachusetts in regard to
-  enrolling students. In order to fit the surplus students, the university made a
-  portion of common rooms and z-rooms into triples and quads, and extended hours of
-  dining services. Given that more students are admitted each year, it was brought
-  to light that the current size of the enrolled student body was affecting
-  the price of tuition and dormitories. To hypothesize, **The enrollment number of
-  the University of Massachusetts, Amherst can be used to determine the cost of being
-  a residential student.** Using the public data provided by the institution, a study
-  was conducted to analyze the relationship between the cost of attending UMass and
-  the enrollment statistics. To account for the increasing population and value of
-  higher education, the rate of change was used to predict how much the cost of attending
-  increases upon each given year. Using step linear regression and random foresting,
-  2 models were able to be created to predict the rate of change within an average
-  3% margin of error. Both were able to show that enrollment was the primary predictor
-  with high statistical significance. This would lead to suggest that the rate of
-  which cost of attendance increases by is determined by the rate of which student
-  enrollment increases by.
+abstract: \par The University of Massachusetts is a public institution providing collegiate education to tens of thousands of students spread out between its campuses statewide. Billions of dollars of revenue is accumulated by the institution each and every year. The use of numerous sources of income has resulted in a net gain of profit yearly. One of the most prominent sources is the net total of tuition and fees. Given as the main functionality of the UMass schools is provided higher education to pursuing students, the revenue made off tuition could be stated as the most important source, even if it may not be the biggest. However, one may question if other cash flows would affect this source. A good practice in business is to keep all income independent of one another to avoid a chain reaction of effects. However shifts in other sources of income could lead to the institution making decisions that affect the student body leading to an adjustment in revenue as more students may want to attend or leave or causing a revaluation of tuition costs. **We hypothesize that the revenue coming from tuition and fees for the University of Massachusetts is dependent on the revenue of its other cash flows.** Through the use of random foresting and linear regression we aimed to reject our hypothesis. Upon testing we weren’t able to formulate a model that was able to accurately predict revenue of tuition in fees, therefore correlation between the cash flows could not be drawn.
+
 ---
 
 ```{r, echo=FALSE, message=F, warning=F}
@@ -55,91 +40,52 @@ Amherst is the flagship campus of the University of Massachusetts. Being so it i
 
 ## **Data**
 
-\par Finding the data was relatively simple. Since UMass is a public institution, they are required to publicly display that costs as well the enrollment statistics. The University Analytics and Institutional Research department provides a back catalogue of numerous datasets regarding UMass Amherst. The two main reports we will use are the Admission/Enrollment and the Undergraduate Student Charges reports.
-\par The Admissions and Enrollment reports come as individual reports for each semester since the spring 1984 semester. Though they come in various formats, all included the total enrolled and newly admitted students by college. They also included the total number of applicants and accepted new students per first and second choice major. We will be using the sum of each college for every fall semester since 1984 to build our data frame.
-\par The Undergraduate Student Charges report is a single PDF file, which is updated every year. Beginning from the 1987 school year, it lists the in-state and out of state tuition and fees cost and along with the costs of room and board. After pulling this data from the file, we concatenate it to our data frame using the corresponding year.
-
-```{r, out.width="90%", size="tiny"}
-UMASS <- read_excel("UMass Enrollment.xlsx")
-kable(head(UMASS[1:7]))
-```
-
-\par Once we have our data frame, we begin to adjust it to better fit our data. First we have to adjust all the costs for inflation. We deflate all of them to match the value of a dollar in 1984. Deflation was provided by the U.S. Bureau of Labor Statistics We then total three cost columns to find the average price to attend UMass. Since the reports were not really clear on both in-state vs out-of-state student ratios nor the amount of students living off campus, this became a road block. Using other sources provided inconsistent numbers, we simply used a 4 to 1 ratio between in-state vs out-of- state students respectively. This same ratio was used on students living on campus vs off-campus. This specific ratio was chosen as it seemed to be the average from all sources as they seem to range from as low as 60% all the way up to 90%.  It is interesting to note that there has been a recent study that UMass has increased their acceptance rate for out-of-state students as they can make a larger profit due to higher tuition costs. These were summed to find the adjusted cost for a typical UMass student. Next we find the acceptance rate and admission rate by finding the ratio of the students who actually got accepted into UMass from those who applied, and those who admitted into UMass from those who were accepted. Since both enrollment and costs increase over time, we have to remove this factor from our data so we do not model natural growth. To do so, we added in the rate of change of enrollment and cost in comparison to the previous year.
-
+\par The data we used was found on the University of Massachusetts office of the President website. Using the single audit reports of each year, parsed the cash flows for the years 2015 to 2019 into a single balance sheet. We focus on using only the net values of each category of  the cash flows, along with the overall total cash flows, and the changes compared the previous years.
+\newline
 
 ```{r}
-inflation <- c(1.0 ,1.04, 1.06, 1.09, 1.14, 1.19, 1.26, 1.31, 1.35, 1.39, 1.43, 1.47, 1.51, 1.54, 1.57, 1.60, 1.66, 1.70, 1.73, 1.77, 1.82, 1.88, 1.94, 2.0, 2.07, 2.06, 2.10, 2.16, 2.21, 2.24, 2.28, 2.28, 2.31, 2.36, 2.42, 2.46)
+CashFlows <- read_excel("UMass Balance sheets.xlsx", sheet = 1)
+#CashFlows <- as.data.frame(t(CashFlows))
+original <- CashFlows
+tuition <- CashFlows[c(2,18),]
+#names(CashFlows)
+CashFlows <- subset(CashFlows, Nets == "1")
+CashFlows <- rbind(CashFlows, tuition)
+kable(head(CashFlows[1:6], 12))
+```
 
-UMASS$`IN-STATE-ADJ` <- UMASS$`IN-STATE` / inflation
-UMASS$`OUT-STATE-ADJ` <- UMASS$`OUT-STATE` / inflation
-UMASS$`ROOM & BOARD ADJ` <- UMASS$`ROOM & BOARD` / inflation
+```{r}
+train <- CashFlows[,2:4]
+test <- CashFlows[,c(5:6)]
+train <- as.data.frame(t(train))
+test <- as.data.frame(t(test))
 
-UMASS$ACCRATE <- UMASS$ACCEPTANCE / UMASS$APPLICATIONS 
-UMASS$ADMRATE <- UMASS$ADMISISSION / UMASS$ACCEPTANCE
+train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2018, 1))
+test.ts <- ts((as.numeric(as.vector(test$V12))), frequency = 1, start = c(2018, 1))
 
-TUITION = (UMASS$`IN-STATE-ADJ` * .8 + UMASS$`OUT-STATE-ADJ` *.2)
-UMASS$COST = TUITION + UMASS$`ROOM & BOARD ADJ` *.8
-kable(head(UMASS[8:13]))
-
-ENROLLMENTRATE <- diff(UMASS$ENROLLMENT)/UMASS[-nrow(UMASS),]$ENROLLMENT
-ENROLLMENTRATE <- list.prepend(ENROLLMENTRATE, 0)
-UMASS$ENROLLMENTRATE <- ENROLLMENTRATE
-COSTRATE <- diff(UMASS$COST)/UMASS[-nrow(UMASS),]$COST
-COSTRATE <- list.prepend(COSTRATE, 0)
-UMASS$COSTRATE <- COSTRATE
 ```
 ```{r}
-kable(head(UMASS[13:16]))
+seed.val <- 1234567
+set.seed(seed.val)
 ```
 
-\par Upon initial inspection, we see that regardless of inflation, UMass's costs seem to gradually increase as the years go by, showing proof that the value of UMass’s education is growing. The enrollment looks to also gradually increase but not at a linear rate.  However it is noticeable that both acceptance and admission rates are gradually decreasing.
+\par We will also look deeper at cash flows from non financing activities as it was recently discovered that due to the recent coronavirus outbreak, UMass is using the revenue from grants to refund their students. So we would like to see if there was any correlation between the two.
+\newline
+
+```{r}
+x <- original[c(2,3,16:20),]
+x.train <- x[,2:4]
+x.train <- as.data.frame(t(x.train))
+kable(head(x[1:6], 7))
+```
+
+\par Upon initial inspection we see that the revenue of tution looks to be as if it is steadily decreasing over the years. The loss between 2015 and 2019 was almost 150 million dollars in fact.
 \newline
 ```{r}
-par(mfrow= c(1,2))
-cost.vec <- as.numeric(as.vector(UMASS$COST))
-cost.ts <- ts(cost.vec, frequency = 1, start = c(1984, 1))
-cost.plot <- ts.plot(cost.ts, xlab = "Year", ylab = "Cost in $", main = "Adjusted cost")
-
-enrollment.vec <- as.numeric(as.vector(UMASS$ENROLLMENT))
-enrollment.ts <- ts(enrollment.vec, frequency = 1, start = c(1984, 1))
-enrollment.plot <- ts.plot(enrollment.ts, xlab = "Year", ylab = "Total Students", main = "Enrollment")
-
+tuition <- as.data.frame(t(CashFlows))
+ tuition.ts <- ts((as.numeric(as.vector(tuition[2:6,12]))), frequency = 1, start = c(2015, 1))
+ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tuition Over the Years")
 ```
-\newline
-```{r}
-par(mfrow= c(1,2))
-admission.vec <- na.omit(as.numeric(as.vector(UMASS$ADMISISSION)))
-admission.ts <- ts(admission.vec, frequency = 1, start = c(1987, 1))
-ts.plot(admission.ts, xlab = "Year", ylab = "Total Students", main = "Admission")
-
-accrate.vec <- na.omit(as.numeric(as.vector(UMASS$ACCRATE)))
-accrate.ts <- ts(accrate.vec, frequency = 1, start = c(1987, 1))
-ts.plot(accrate.ts, xlab = "Year", ylab = "Rate", main = "Acceptance Rate")
-
-
-```
-\par When looking at the rate of change for costs and enrollment, we see that they both look initially random; however, we also see obvious peaks corresponding to different economic turning points, being 1990, 2003, and 2008, but no trends seem to be apparent.
-\newline
-```{r}
-par(mfrow= c(1,2))
-costRATE.vec <- as.numeric(as.vector(UMASS$COSTRATE))
-costRATE.ts <- ts(costRATE.vec, frequency = 1, start = c(1984, 1))
-ts.plot(costRATE.ts, xlab = "Year", ylab = "Cost in $", main = "Adjusted cost rate of change")
-
-ENROLLMENTRATE.vec <- as.numeric(as.vector(UMASS$ENROLLMENTRATE))
-ENROLLMENTRATE.ts <- ts(ENROLLMENTRATE.vec, frequency = 1, start = c(1984, 1))
-ts.plot(ENROLLMENTRATE.ts, xlab = "Year", ylab = "Cost in $", main = "Enrollment rate of change")
-```
-\newline
-\par All the graphs however share a common trait. They all show a huge dip in performance between the years 1992-1997. This could not be ignored and after doing some research it was discovered that during this time there was a lot of racial tension happening at UMass. These issues all seemed to stem from the 1992 ALANA agreement and the administrative response to it during 1994. It resulted in a sit in at Goddell in 1997 due to the increasing unrest coming from minority students on campus. Without getting into too much detail about the situation, the important thing to note is that it affected every graph negatively and couldn't be explained through natural or economic trends. To account, a dummy variable was made to only include those years 1994-1998 and the variable will be used when formulating the model.
-\newline
-```{r}
-TURMOIL <- UMASS$YEAR
-TURMOIL[1:36] <- 0
-TURMOIL[11:15] <- 1
-UMASS$TURMOIL <- TURMOIL
-```
-
 
 ## **Modeling**
 \par To begin we will reserve the last 6 years of the dataframe as our testing set, and everything else as our training set.
@@ -281,10 +227,8 @@ ts.plot(step.test.res.ts, xlab = "Year", ylab = "Cost in $", main= "Linear Model
 
 ## **References**
 
-[“Admissions And Enrollment Reports.” UMass Amherst](www.umass.edu/oir/admissions-and-enrollment-reports)
-\newline
-\newline
-[Couloute, Lucius. “The 1997 Goodell Sit-in: A Movement Tired of Broken Promises.” Racial Umass, 2015](blogs.umass.edu/radicalumass/histories-of-radical-actions-at-umass/99-2/)
+
+[“Reports &amp; Audits.” Reports &amp; Audits | University of Massachusetts Office of the President](www.umassp.edu/controller/reports)
 \newline
 \newline
 [Thys, Fred. Study: Out-Of-State Students With Lower Test Scores Admitted To UMass Amherst More. WBUR, 29 May 2018](www.wbur.org/edify/2018/05/29/out-of-state-admissions-to-umass)
@@ -292,8 +236,6 @@ ts.plot(step.test.res.ts, xlab = "Year", ylab = "Cost in $", main= "Linear Model
 \newline
 [“U.S. Bureau of Labor Statistics.” U.S. Bureau of Labor Statistics, U.S. Bureau of Labor Statistics, 28 Apr. 2020](www.bls.gov/)
 \newline
-\newline
-[“Undergraduate Student Charges.” UMass Amherst](www.umass.edu/oir/sites/default/files/publications/factsheets/student_charges/FS_chg_01.pdf)
 \newline
 
 
