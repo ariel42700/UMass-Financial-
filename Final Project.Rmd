@@ -86,11 +86,13 @@ tuition <- as.data.frame(t(CashFlows))
 ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tuition Over the Years")
 ```
 
+\par In order to make that dataframe more suitable for modeling, we transposed the table to create a column that corresponds to each indiviual row in our data set.
+
 ## **Modeling**
-<<<<<<< HEAD
+
 \par To begin we will reserve the last 2 years of the dataframe as our testing set, and everything else as our training set.
 
-\par We will first approach using  models linear regression models. When attempting to create a model using all the variables made available to us, the model would result is statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, student orginzation agency transactions. 
+\par We will first approach using  models linear regression models. When attempting to create a model using all the variables made available to us, the model would result is statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions. 
 \newline
 ```{r}
 fit.3 <- lm(V12 ~V3, data = train)
@@ -112,25 +114,108 @@ kable(xtable(x.2))
 x.7 <- lm(V1~V7,data=x.train)
 kable(xtable(x.7))
 ```
+\par We then try to fit the model over our training set an we found that only sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents and cash flows from capital and other financing activities were accurate predictors with sumplimental disclosures of non cash activities being the closest to the true values.
+\newline
+```{r}
+#par(mfrow=c(1, 2))
+pred.v11 <- predict(fit.11, train)
+pred.v5 <- predict(fit.5, train)
+predict.v3 <- predict(fit.3, train)
+predict.x2 <- predict(x.2, train)
+predict.x7 <- predict(x.7, train)
 
+train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
+
+v11.ts <- ts(as.numeric(pred.v11), frequency = 1, start = c(2015, 1))
+v5.ts <- ts(as.numeric(pred.v5), frequency = 1, start = c(2015, 1))
+v3.ts <- ts(as.numeric(predict.v3), frequency = 1, start = c(2015, 1))
+x2.ts <- ts(as.numeric(predict.x2), frequency = 1, start = c(2015, 1))
+x7.ts <- ts(as.numeric(predict.x7), frequency = 1, start = c(2015, 1))
+
+ts.plot(v11.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "sumplimental disclosures of non cash activities", gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+```{r}
+
+ts.plot(v5.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "net decrease in cash and noncash equivalents", gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+```{r}
+
+ts.plot(v3.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "cash flows from capital and other financing activities", gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+```{r}
+
+ts.plot(x2.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "student orginzation agency transactions", gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+```{r}
+
+ts.plot(x7.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "student orginzation agency transactions", gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+
+```{r, results="hide"}
+rmse(pred.v5, train$V12) #12532.33
+rmse(predict.v3, train$V12) #6991.26
+rmse(pred.v11, train$V12) #2333.271
+rmse(predict.x2, train$V12) #142085.6
+rmse(predict.x7, train$V12) #42638079
+
+res.v5 = pred.v5 - train$V12
+res.v11 = pred.v11 - train$V12
+res.v3 = predict.v3 - train$V12
+res.x2 = predict.x2 - train$V12
+res.x7 = predict.x7 - train$V12
+
+sum(res.v5) #-3.49246e-10
+sum(res.v11)# 0
+sum(res.v3)# 3.49246e-10
+sum(res.x2)# -356311 # the last two are really bad
+sum(res.x7) #124829573
+```
+\par Upon inspection of residuals, we see that the sum residualsof sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents and cash flows from capital and other financing activities all aare essential zero, while grants and contracts and student orginzation agency transactions are -356,311 and 12,429,573 respectably showing poor under and over estimates. The root mean square error of sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions are 12,532.33, 6,991.26, 2,333.271, 14,2085.6 and 42638079 in the same order. This once again shows grants and student orginzation revenue being extremely poor linear regression predictors. Keep in mind that these numbers are in 1000s of dollars so we are showing upwards of millions of dollars in error.
+\par Lastly a final look at our residual plots enforce our previous observation of grants and contracts and student orginzation agency transactions being extremly poor predictors. In response we wont continue and test those two individual variables on our testing set.
+```{r}
+v5.res.ts <- ts((as.numeric(as.vector(res.v5))), frequency = 1, start = c(2015, 1))
+ts.plot(v5.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "net decrease in cash and noncash equivalents")
+```
+```{r}
+v11.res.ts <- ts((as.numeric(as.vector(res.v11))), frequency = 1, start = c(2015, 1))
+ts.plot(v11.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "sumplimental disclosures of non cash activities")
+```
+```{r}
+v3.res.ts <- ts((as.numeric(as.vector(res.v3))), frequency = 1, start = c(2015, 1))
+ts.plot(v3.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "cash flows from capital and other financing activities")
+```
+```{r}
+x2.res.ts <- ts((as.numeric(as.vector(res.x2))), frequency = 1, start = c(2015, 1))
+ts.plot(x2.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginzation agency transactions")
+```
+```{r}
+x7.res.ts <- ts((as.numeric(as.vector(res.x7))), frequency = 1, start = c(2015, 1))
+ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginzation agency transactions")
+ 
+```
 ## **Results**
 
 
 ## **Conclusion**
 
-\par We were able to draw a clear correlation between the rate of which enrollment increases and the rate of which costs increases. While controlling for not only inflation, but the effect of time, we were still able to predict the increase of cost to attend UMass within a roughly 5% interval. Though this is not a direct causation between the two, we can conclude that expected enrollment is at least considered when deciding the costs for next semester. The models weren't able to accurately account for business and economic cycles which can affect the price of which tuition is set. We are also only looking at purely the populous of UMass, not other factors such as staffing, programs, and resources provided by the school. With all the new buildings and renovations, there is a direct affect on room and board cost as it increases the value of life off campus. We must also keep in mind that UMass doesn’t directly choose their tuition as that is the decision of the Department of Education. 
+\par We were unable to draw a clear correlation between the rate of which enrollment increases and the rate of which costs increases. While controlling for not only inflation, but the effect of time, we were still able to predict the increase of cost to attend UMass within a roughly 5% interval. Though this is not a direct causation between the two, we can conclude that expected enrollment is at least considered when deciding the costs for next semester. The models weren't able to accurately account for business and economic cycles which can affect the price of which tuition is set. We are also only looking at purely the populous of UMass, not other factors such as staffing, programs, and resources provided by the school. With all the new buildings and renovations, there is a direct affect on room and board cost as it increases the value of life off campus. We must also keep in mind that UMass doesn’t directly choose their tuition as that is the decision of the Department of Education. 
 \par Taking all of these into consideration, it remains undeniable that the relationship between the two holds true. There is in fact a correlation present; therefore, we are unable to reject our hypothesis. There is a significant relationship between the amount of students enrolled at the University of Massachusetts, Amherst and the cost of attending while staying on campus.
 \newline
 
 
 
+
+
+
+
+
+
 \newpage
-=======
-
-## **Results**
->>>>>>> 6b0da0d7457368234dc0023f3f3d2bb2cafab83e
-
-
 ## **References**
 
 
