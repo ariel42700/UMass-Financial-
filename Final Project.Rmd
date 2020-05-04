@@ -1,15 +1,15 @@
 ---
 title: " The University of Massachusetts Cashflows on Tuition Revenue"
-author:Alain Duplan and Ariel Lutati
+author:
 - affiliation: University Of Massachuessetts, Amherst
   name: Alain Duplan, Ariel Lutati
 date: "`r format(Sys.time(), '%B %d, %Y')`"
 output:
-  html_document:
-    df_print: paged
   pdf_document:
     latex_engine: pdflatex
     template: tex_template.tex
+  html_document:
+    df_print: paged
   word_document: default
 fontsize: 10pt
 geometry: margin=.75in
@@ -94,7 +94,6 @@ ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tu
 
 \par We first approached our modeling using linear regression models. When we created a model using all the variables made available to us, the model resulted in statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of noncash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions. 
 
-\newline
 ```{r}
 fit.3 <- lm(V12 ~V3, data = train)
 kable(xtable(fit.3))
@@ -115,6 +114,7 @@ kable(xtable(x.2))
 x.7 <- lm(V1~V7,data=x.train)
 kable(xtable(x.7))
 ```
+
 \par We then try to fit the model over our training set an we found that only sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents and cash flows from capital and other financing activities were accurate predictors with sumplimental disclosures of non cash activities being the closest to the true values.
 \newline
 ```{r}
@@ -136,21 +136,27 @@ x7.ts <- ts(as.numeric(predict.x7), frequency = 1, start = c(2015, 1))
 ts.plot(v11.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "sumplimental disclosures of non cash activities", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
+\newline
 ```{r}
 
 ts.plot(v5.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "net decrease in cash and noncash equivalents", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
+\newline
+
 ```{r}
 
 ts.plot(v3.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "cash flows from capital and other financing activities", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
+\newline
 ```{r}
 
 ts.plot(x2.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "student orginzation agency transactions", gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
+\newline
+
 ```{r}
 
 ts.plot(x7.ts, train.ts, xlab = "year", ylab ="amount in 1000 of dollars",  main = "student orginzation agency transactions", gpars = list(col=rainbow(2))) 
@@ -178,32 +184,44 @@ sum(res.x7) #124829573
 ```
 \par Upon inspection of residuals, we saw that the sum residuals of sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents and cash flows from capital and other financing activities all are essentially zero, while grants and contracts and student orginzation agency transactions are -356,311 and 12,429,573, respectively, showed poor under and over estimates. The root mean square error of sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions were 12,532.33, 6,991.26, 2,333.271, 14,2085.6 and 42638079 in the same order. This once again showed grants and student orginzation revenue were extremely poor linear regression predictors. Keep in mind that these numbers were in 1000s of dollars so that showed upwards of millions of dollars in error.
 \par Lastly a final look at our residual plots enforced our previous observation of grants and contracts and student organization agency transactions as extremely poor predictors. In response we didn't continue and tested those two individual variables on our testing set.
+\newline
 ```{r}
 v5.res.ts <- ts((as.numeric(as.vector(res.v5))), frequency = 1, start = c(2015, 1))
 ts.plot(v5.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "net decrease in cash and noncash equivalents")
 ```
+\newline
+
 ```{r}
 v11.res.ts <- ts((as.numeric(as.vector(res.v11))), frequency = 1, start = c(2015, 1))
 ts.plot(v11.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "sumplimental disclosures of non cash activities")
 ```
+\newline
+
 ```{r}
 v3.res.ts <- ts((as.numeric(as.vector(res.v3))), frequency = 1, start = c(2015, 1))
 ts.plot(v3.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "cash flows from capital and other financing activities")
 ```
+\newline
+
 ```{r}
 x2.res.ts <- ts((as.numeric(as.vector(res.x2))), frequency = 1, start = c(2015, 1))
 ts.plot(x2.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "grants and contracts")
 ```
+\newline
+
 ```{r}
 x7.res.ts <- ts((as.numeric(as.vector(res.x7))), frequency = 1, start = c(2015, 1))
 ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginzation agency transactions")
 
 ```
 
-\par Lets take a look at another approach using 
+\par Lets take a look at another approach using random foresting. We will attempt to forest our net cash flows using 4 partitions and 500 trees. Due our small dataset, we are unable to provide the importance of the variables but the model was successfully created. We do see that the model is a fairly accurate predictor for the true values but not as strong as the linear regression models.
+\newline
+```{r, echo=FALSE, message=F, warning=F}
+train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
+```
 
 ```{r}
-train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
 #varImpPlot(train.forest)
 train.pred <- predict(train.forest, train)
 train.forest.pred.ts <- ts((as.numeric(as.vector(train.pred))), frequency = 1, start = c(2015, 1))
@@ -211,21 +229,28 @@ train.forest.pred.ts <- ts((as.numeric(as.vector(train.pred))), frequency = 1, s
 ts.plot(train.forest.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
-
+ 
+\par However we see that the root mean square error is an outstanding 20,829.5 thousands of dollars which is huge! The total resiudual is only 1,588.296 thousands dollars however which is signifcantly smaller. We cannot ignore this variance, which is reflected in our residual time seris.
 ```{r, results="hide"}
 #par(mfrow= c(1,2))
-train.rmse <- rmse(train$V12, train.pred)
+ rmse(train$V12, train.pred)
 #23,161,920.7
 train.res = train.pred - train$V12
 sum(train.res) # 14313.16
+```
+```{r}
 train.res.ts <- ts((as.numeric(as.vector(train.res))), frequency = 1, start = c(2015, 1))
-ts.plot(train.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
+ts.plot(train.res.ts, xlab = "Year", ylab = "Cost in $1000", main = "residuals")
 
 #hist(train.res)
 ```
-```{r}
+\par We will also be checking to the cash flows from non financing activities to see if it would a better model, this time using 5 partitions instead of 4. However the same resulting variance seem to be present in this forest.
+
+```{r, echo=FALSE, message=F, warning=F}
 x.forest <- randomForest(V1 ~.,data = x.train, mtry  = 5, importance = T)
 #varImpPlot(train.forest)
+```
+```{r}
 x.pred <- predict(x.forest, x.train)
 x.pred.ts <- ts((as.numeric(as.vector(x.pred))), frequency = 1, start = c(2015, 1))
 #train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
@@ -233,18 +258,103 @@ x.pred.ts <- ts((as.numeric(as.vector(x.pred))), frequency = 1, start = c(2015, 
 ts.plot(x.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
 legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
 ```
-```{r}
-#par(mfrow= c(1,2))
-x.rmse <- rmse(train$V12, x.pred)
+\par We see that the residuals remain roughly the same distrubtion but the variance does seem slightly higher with a root mean square error of 26,378.29 thousands of dollars and a sum of residuals at 9930.44 thousands of dollars.
+```{r, results="hide"}
+rmse(train$V12, x.pred)
 #24,093.50
 x.res = x.pred - train$V12
-sum(x.res) # 8214.76 
+sum(x.res) # 8214.76
+```
+```{r}
 x.res.ts <- ts((as.numeric(as.vector(x.res))), frequency = 1, start = c(2015, 1))
 ts.plot(x.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
 
 #hist(train.res)
 ```
+
+\par Regardless we shall continue to use these models inour testing phase and hope to remain within the same margin of ever.
+
 ## **Results**
+
+Testing the predictive capabilities of our linear models, we can easily see that none of the models come even close to our true values. These models fit poorly because they produce a lot of error (false values).
+\newline
+
+```{r, echo=FALSE, message=F, warning=F}
+test.pred11 <- predict(fit.11, test)
+test.pred3 <- predict(fit.3, test)
+test.pred5 <- predict(fit.5, test)
+
+test.pred11.ts <- ts(test.pred11, frequency = 1, start = c(2018, 1))
+test.pred3.ts <- ts(test.pred3, frequency = 1, start = c(2018, 1))
+test.pred5.ts <- ts(test.pred5, frequency = 1, start = c(2018, 1))
+
+ts.plot(test.pred11.ts, test.pred3.ts, test.pred5.ts, test.ts, gpars = list(col=rainbow(4)), name = "Fit of Linear Model", xlab = "Year", ylab = "ThousandsOfDollars")
+legend("topright", legend = c("supplimentalDisclosuresNonCashActivities", "CashFlowsCapitalAndOther", "NetDecreaseInCashAndNonCash", "true"), col = rainbow((4)), lty = 1)
+```
+\par We can even both quantify and plot how abysmal the fits of these linear models are by computing the residual mean squared error. As you can see, the average error of each linear model is astronomically high (Billions of dollars in error).
+\newline
+
+```{r, results="hide"}
+rmse(test.pred11, test$V12) #127113.1
+rmse(test.pred3, test$V12) #102434.2
+rmse(test.pred5, test$V12) #245568.4
+
+res.t11 <- test.pred11 - test$V12
+res.t3 <- test.pred3 - test$V12
+res.t5 <- test.pred5 - test$V12
+
+sum(res.t11) #33331.97
+sum(res.t3) #145521.5
+sum(res.t5) #353963.5
+
+```
+
+```{r, echo=FALSE, message=F, warning=F}
+res.t11.ts <- ts(res.t11, frequency = 1, start = c(2018, 1))
+res.t3.ts <- ts(res.t3, frequency = 1, start = c(2018, 1))
+res.t5.ts <- ts(res.t5, frequency = 1, start = c(2018, 1))
+
+ts.plot(res.t11.ts, res.t3.ts, res.t5.ts, gpars = list(col=rainbow(3)))
+legend("topright", legend = c("supplimentalDisclosuresNonCashActivities", "CashFlowsCapitalAndOther", "NetDecreaseInCashAndNonCash"), col = rainbow((3)), lty = 1)
+```
+\par We can run similar tests for out random forest tree model. This model fits less poorly than it's linear regression counterpart since the predictions are off by a lesser degree. This means that the error produced by this models produces lower amounts of false values.
+\newline
+
+```{r, results="hide"}
+rf.pred <- predict(train.forest, test)
+rfx.pred <- predict(x.forest, test)
+
+rf.ts <- ts(rf.pred, frequency = 1, start = c(2018, 1))
+rfx.ts <- ts(rfx.pred, frequency = 1, start = c(2018, 1))
+```
+```{r, echo=FALSE, message=F, warning=F}
+ts.plot(rf.ts, rfx.ts, test.ts, gpars = list(col=rainbow(3)), name = "Fit of Tree Models" , xlab = "Year", ylab = "Cost in Thousands of Dollars")
+legend("topright", legend = c("NetCashFlows", "NonFinancingActivities", "true"), col = rainbow((3)), lty = 1)
+```
+\par Surely enough, once we plot the residuals, the random forest model produces lower error than the linear models. Respectively, the calculated RMSE is lower than that of the linear models. Meaning, although this model still produces extremely poor predictive capability, it still proves better than our linear model.
+\newline
+
+```{r, results="hide"}
+rmse(rf.pred, test$V12) #92379.58
+rmse(rfx.pred, test$V12) #130204.1
+
+
+res.rf <- rf.pred - test$V12
+res.rfx <- rfx.pred - test$V12
+
+
+sum(res.rf) # 184747
+sum(res.rfx) #259976.7
+
+```
+```{r, echo=FALSE, message=F, warning=F}
+res.rf.ts <- ts(res.rf, frequency = 1, start = c(2018, 1))
+res.rfx.ts <- ts(res.rfx, frequency = 1, start = c(2018, 1))
+
+
+ts.plot(res.rf.ts, res.rfx.ts, gpars = list(col=rainbow(2)), name = "Residuals of Tree Model", xlab = "Year", ylab = "Cost in Thousands of Dollars")
+legend("topright", legend = c("NetCashFlows", "NonFinancingActivities"), col = rainbow((2)), lty = 1)
+```
 
 
 ## **Conclusion**
@@ -254,7 +364,6 @@ ts.plot(x.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
 
 \par Taking all of these into consideration, it's undeniable that other cashflows preside no affect over UMass' revenue from tuition and fees. Therefore, we must reject our hypothesis. There is a no significant relationship between other cashflows for the University of Massachusetts system and the cost of tuition and fees.
 
-\newline
 
 
 \newpage
