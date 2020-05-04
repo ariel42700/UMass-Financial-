@@ -1,6 +1,6 @@
 ---
 title: " The University of Massachusetts Cashflows on Tuition Revenue"
-author:
+author:Alain Duplan and Ariel Lutati
 - affiliation: University Of Massachuessetts, Amherst
   name: Alain Duplan, Ariel Lutati
 date: "`r format(Sys.time(), '%B %d, %Y')`"
@@ -119,7 +119,7 @@ kable(xtable(x.7))
 ## **Conclusion**
 
 \par We were unable to draw a clear correlation between tuition & fees and other cashflows. none of our models using significant factors produced an RMSE low enough to be accepted. Simply put, at first glance, factors such as Supplemental Disclosure Of Noncash Activities seemed to affect tuition and fees by about a \$933 USD decrease in tuition and fees per \$1000 increase. However, when the model's fit was eventually tested, it failed horribly by producing astronomically high RMSE values. This seems logical since we must also keep in mind that UMass doesn’t directly choose their tuition as that is the decision of the Department of Education. 
-\par Taking all of these into consideration, it's undeniable that other cashflows preside no affect over UMass' revenue from tuition and fees. Therefore, we must reject our hypothesis. There is a  no significant relationship between other cashflows for the University of Massachusetts system and the cost of tuition and fees.
+\par Taking all of these into consideration, it's undeniable that other cashflows preside no affect over UMass' revenue from tuition and fees. Therefore, we must reject our hypothesis. There is a no significant relationship between other cashflows for the University of Massachusetts system and the cost of tuition and fees.
 \newline
 
 
