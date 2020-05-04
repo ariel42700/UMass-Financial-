@@ -200,6 +200,7 @@ ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginza
 
 ```
 
+\par Lets take a look at another approach
 
 ```{r}
 train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
