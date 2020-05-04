@@ -92,7 +92,7 @@ ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tu
 
 \par To begin we will reserve the last 2 years of the dataframe as our testing set, and everything else as our training set.
 
-\par We will first approach using  models linear regression models. When attempting to create a model using all the variables made available to us, the model would result is statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions. 
+\par We first approached our modeling using linear regression models. When we created a model using all the variables made available to us, the model resulted in statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of noncash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions. 
 
 \newline
 ```{r}
@@ -176,8 +176,8 @@ sum(res.v3)# 3.49246e-10
 sum(res.x2)# -356311 # the last two are really bad
 sum(res.x7) #124829573
 ```
-\par Upon inspection of residuals, we see that the sum residualsof sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents and cash flows from capital and other financing activities all aare essential zero, while grants and contracts and student orginzation agency transactions are -356,311 and 12,429,573 respectably showing poor under and over estimates. The root mean square error of sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions are 12,532.33, 6,991.26, 2,333.271, 14,2085.6 and 42638079 in the same order. This once again shows grants and student orginzation revenue being extremely poor linear regression predictors. Keep in mind that these numbers are in 1000s of dollars so we are showing upwards of millions of dollars in error.
-\par Lastly a final look at our residual plots enforce our previous observation of grants and contracts and student orginzation agency transactions being extremly poor predictors. In response we wont continue and test those two individual variables on our testing set.
+\par Upon inspection of residuals, we saw that the sum residuals of sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents and cash flows from capital and other financing activities all are essentially zero, while grants and contracts and student orginzation agency transactions are -356,311 and 12,429,573, respectively, showed poor under and over estimates. The root mean square error of sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions were 12,532.33, 6,991.26, 2,333.271, 14,2085.6 and 42638079 in the same order. This once again showed grants and student orginzation revenue were extremely poor linear regression predictors. Keep in mind that these numbers were in 1000s of dollars so that showed upwards of millions of dollars in error.
+\par Lastly a final look at our residual plots enforced our previous observation of grants and contracts and student organization agency transactions as extremely poor predictors. In response we didn't continue and tested those two individual variables on our testing set.
 ```{r}
 v5.res.ts <- ts((as.numeric(as.vector(res.v5))), frequency = 1, start = c(2015, 1))
 ts.plot(v5.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "net decrease in cash and noncash equivalents")
@@ -197,7 +197,51 @@ ts.plot(x2.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginza
 ```{r}
 x7.res.ts <- ts((as.numeric(as.vector(res.x7))), frequency = 1, start = c(2015, 1))
 ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginzation agency transactions")
- 
+
+```
+
+
+```{r}
+train.forest <- randomForest(V12 ~.,data = train, mtry  = 4, importance = T)
+#varImpPlot(train.forest)
+train.pred <- predict(train.forest, train)
+train.forest.pred.ts <- ts((as.numeric(as.vector(train.pred))), frequency = 1, start = c(2015, 1))
+
+ts.plot(train.forest.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+
+```{r, results="hide"}
+#par(mfrow= c(1,2))
+train.rmse <- rmse(train$V12, train.pred)
+#23,161,920.7
+train.res = train.pred - train$V12
+sum(train.res) # 14313.16
+train.res.ts <- ts((as.numeric(as.vector(train.res))), frequency = 1, start = c(2015, 1))
+ts.plot(train.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
+
+#hist(train.res)
+```
+```{r}
+x.forest <- randomForest(V1 ~.,data = x.train, mtry  = 5, importance = T)
+#varImpPlot(train.forest)
+x.pred <- predict(x.forest, x.train)
+x.pred.ts <- ts((as.numeric(as.vector(x.pred))), frequency = 1, start = c(2015, 1))
+#train.ts <- ts((as.numeric(as.vector(train$V12))), frequency = 1, start = c(2015, 1))
+
+ts.plot(x.pred.ts, train.ts, gpars = list(col=rainbow(2))) 
+legend("topright", legend = c("predictions", "true"), col = rainbow((2)), lty = 1)
+```
+```{r}
+#par(mfrow= c(1,2))
+x.rmse <- rmse(train$V12, x.pred)
+#24,093.50
+x.res = x.pred - train$V12
+sum(x.res) # 8214.76 
+x.res.ts <- ts((as.numeric(as.vector(x.res))), frequency = 1, start = c(2015, 1))
+ts.plot(x.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
+
+#hist(train.res)
 ```
 ## **Results**
 
