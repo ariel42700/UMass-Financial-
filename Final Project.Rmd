@@ -92,7 +92,11 @@ ts.plot(tuition.ts, xlab = "year", ylab ="amount in 1000 of dollars", main = "Tu
 
 \par To begin we will reserve the last 2 years of the dataframe as our testing set, and everything else as our training set.
 
+<<<<<<< HEAD
 \par We will first approach using  models linear regression models. When attempting to create a model using all the variables made available to us, the model would result is statistically insignificant coefficient estimates. So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: sumplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and student orginzation agency transactions. 
+=======
+\par Our first approach used linear regression models. When we created a model using all the variables made available to us, the model resulted in statistically insignificant coefficient estimates (meaning all null hypotheses were accepted). So instead we approached this by making single variate regression models on all the variables we used in our data frame. As a result we found that 5 of the variables were significant on their own: supplimental disclosures of non cash activities, net decrease in cash and noncash equivalents, cash flows from capital and other financing activities, grants and contracts, and  student organization agency transactions. 
+>>>>>>> 50c4b42777fab204c0d13d1441a5b7e084b4321d
 \newline
 ```{r}
 fit.3 <- lm(V12 ~V3, data = train)
@@ -203,8 +207,13 @@ ts.plot(x7.res.ts, xlab = "Year", ylab = "Cost in $1000", main= "student orginza
 
 ## **Conclusion**
 
+<<<<<<< HEAD
 \par We were unable to draw a clear correlation between the rate of which enrollment increases and the rate of which costs increases. While controlling for not only inflation, but the effect of time, we were still able to predict the increase of cost to attend UMass within a roughly 5% interval. Though this is not a direct causation between the two, we can conclude that expected enrollment is at least considered when deciding the costs for next semester. The models weren't able to accurately account for business and economic cycles which can affect the price of which tuition is set. We are also only looking at purely the populous of UMass, not other factors such as staffing, programs, and resources provided by the school. With all the new buildings and renovations, there is a direct affect on room and board cost as it increases the value of life off campus. We must also keep in mind that UMass doesn’t directly choose their tuition as that is the decision of the Department of Education. 
 \par Taking all of these into consideration, it remains undeniable that the relationship between the two holds true. There is in fact a correlation present; therefore, we are unable to reject our hypothesis. There is a significant relationship between the amount of students enrolled at the University of Massachusetts, Amherst and the cost of attending while staying on campus.
+=======
+\par We were unable to draw a clear correlation between tuition & fees and other cashflows. none of our models using significant factors produced an RMSE low enough to be accepted. Simply put, at first glance, factors such as Supplemental Disclosure Of Noncash Activities seemed to affect tuition and fees by about a \$933 USD decrease in tuition and fees per \$1000 increase. However, when the model's fit was eventually tested, it failed horribly by producing astronomically high RMSE values. This seems logical since we must also keep in mind that UMass doesn’t directly choose their tuition as that is the decision of the Department of Education. 
+\par Taking all of these into consideration, it's undeniable that other cashflows preside no affect over UMass' revenue from tuition and fees. Therefore, we must reject our hypothesis. There is a  no significant relationship between other cashflows for the University of Massachusetts system and the cost of tuition and fees.
+>>>>>>> 50c4b42777fab204c0d13d1441a5b7e084b4321d
 \newline
 
 
