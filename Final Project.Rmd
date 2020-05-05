@@ -275,6 +275,80 @@ ts.plot(x.res.ts, xlab = "Year", ylab = "Cost in $", main = "residuals")
 \par Regardless we shall continue to use these models inour testing phase and hope to remain within the same margin of ever.
 
 ## **Results**
+\par Testing the predictive capabilities of our linear models, we can easily see that none of the models come even close to our true values. These models fit poorly because they produce a lot of error (false values).
+
+```{r}
+test.pred11 <- predict(fit.11, test)
+test.pred3 <- predict(fit.3, test)
+test.pred5 <- predict(fit.5, test)
+
+test.pred11.ts <- ts(test.pred11, frequency = 1, start = c(2018, 1))
+test.pred3.ts <- ts(test.pred3, frequency = 1, start = c(2018, 1))
+test.pred5.ts <- ts(test.pred5, frequency = 1, start = c(2018, 1))
+
+ts.plot(test.pred11.ts, test.pred3.ts, test.pred5.ts, test.ts, gpars = list(col=rainbow(4)), name = "Fit of Linear Model", xlab = "Year", ylab = "ThousandsOfDollars") 
+legend("topright", legend = c("supplimentalDisclosuresNonCashActivities", "CashFlowsCapitalAndOther", "NetDecreaseInCashAndNonCash", "true"), col = rainbow((4)), lty = 1)
+```
+\par We can even both quantify and plot how abysmal the fits of these linear models are by computing the residual mean squared error. As you can see, the average error of each linear model is astronomically high (Billions of dollars in error).
+```{r}
+res.t11.ts <- ts(res.t11, frequency = 1, start = c(2018, 1))
+res.t3.ts <- ts(res.t3, frequency = 1, start = c(2018, 1))
+res.t5.ts <- ts(res.t5, frequency = 1, start = c(2018, 1))
+
+ts.plot(res.t11.ts, res.t3.ts, res.t5.ts, gpars = list(col=rainbow(3)), name = "Residual of Linear Models", xlab = "Year", ylab = "cost in thousands of dollars") 
+legend("topright", legend = c("supplimentalDisclosuresNonCashActivities", "CashFlowsCapitalAndOther", "NetDecreaseInCashAndNonCash"), col = rainbow((4)), lty = 1)
+```
+
+```{r, results="hide"}
+rmse(test.pred11, test$V12) #127113.1
+rmse(test.pred3, test$V12) #102434.2
+rmse(test.pred5, test$V12) #245568.4
+
+res.t11 <- test.pred11 - test$V12
+res.t3 <- test.pred3 - test$V12
+res.t5 <- test.pred5 - test$V12
+
+sum(res.t11) #33331.97
+sum(res.t3) #145521.5
+sum(res.t5) #353963.5
+
+```
+\par We can run similar tests for out random forest tree model. This model fits less poorly than it's linear regression counterpart since the predictions are off by a lesser degree. This means that the error produced by this models produces lower amounts of false values.
+
+```{r, results="hide"}
+rf.pred <- predict(train.forest, test)
+rfx.pred <- predict(x.forest, test)
+
+rf.ts <- ts(rf.pred, frequency = 1, start = c(2018, 1))
+rfx.ts <- ts(rfx.pred, frequency = 1, start = c(2018, 1))
+```
+```{r}
+ts.plot(rf.ts, rfx.ts, test.ts, gpars = list(col=rainbow(3)), name = "Fit of Tree Models" , xlab = "Year", ylab = "Cost in Thousands of Dollars") 
+legend("topright", legend = c("NetCashFlows", "NonFinancingActivities", "true"), col = rainbow((3)), lty = 1)
+```
+\par Surely enough, once we plot the residuals, the random forest model produces lower error than the linear models. Respectively, the calculated RMSE is lower than that of the linear models. Meaning, although this model still produces extremely poor predictive capability, it still proves better than our linear model.
+```{r}
+res.rf.ts <- ts(res.rf, frequency = 1, start = c(2018, 1))
+res.rfx.ts <- ts(res.rfx, frequency = 1, start = c(2018, 1))
+
+
+ts.plot(res.rf.ts, res.rfx.ts, gpars = list(col=rainbow(2)), name = "Residuals of Tree Model", xlab = "Year", ylab = "Cost in Thousands of Dollars") 
+legend("topright", legend = c("NetCashFlows", "NonFinancingActivities"), col = rainbow((2)), lty = 1)
+```
+
+```{r, results="hide"}
+rmse(rf.pred, test$V12) #92379.58
+rmse(rfx.pred, test$V12) #130204.1
+
+
+res.rf <- rf.pred - test$V12
+res.rfx <- rfx.pred - test$V12
+
+
+sum(res.rf) # 184747
+sum(res.rfx) #259976.7
+
+```
 
 Testing the predictive capabilities of our linear models, we can easily see that none of the models come even close to our true values. These models fit poorly because they produce a lot of error (false values).
 \newline
