@@ -1,5 +1,5 @@
 ---
-title: " The University of Massachusetts Cashflows on Tuition Revenue"
+title: " The University of Massachusetts' Influence of Cashflows on Tuition Revenue"
 author:
 - affiliation: University Of Massachuessetts, Amherst
   name: Alain Duplan, Ariel Lutati
